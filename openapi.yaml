@@ -41,22 +41,51 @@ paths:
                             - "read"
               example:
                 messages:
-                  - text: "Hello, World!"
+                  - uuid: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                    text: "Hello, World!"
                     status: "read"
-                  - text: "How are you today?"
+                  - uuid: "a4d6f7f1-70c1-4111-8d90-6d5fbdb7c6b7"
+                    text: "How are you today?"
                     status: "sent"
-                  - text: "Thanks, I'm fine. How about you?"
+                  - uuid: "f5a1e77a-e69d-4294-80b3-656a7b0727e9"
+                    text: "Thanks, I'm fine. How about you?"
                     status: "sent"
   /messages/send:
-    get:
+    post:
       summary: Send a Message
-      parameters:
-        - name: text
-          in: query
-          description: The text you want to send
-          required: true
-          schema:
-            type: "string"
+      description: Dispatches a message to be sent.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: "object"
+              properties:
+                text:
+                  type: "string"
+                  description: The text you want to send
+              required:
+                - text
       responses:
-        '204':
+        '200':
           description: Successfully sent
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+              example:
+                message: "Successfully sent"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  error:
+                    type: "string"
+              example:
+                error: "Text is required"

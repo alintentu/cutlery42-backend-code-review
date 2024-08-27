@@ -3,13 +3,16 @@
 namespace App\Entity;
 
 use App\Repository\MessageRepository;
-use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use \DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
 /**
- * TODO: Review Message class
+ * Represents a message entity in the application.
+ * 
+ * This entity stores the details of a message, including its unique identifier (UUID), 
+ * content (text), status, and the timestamp of when it was created.
  */
 class Message
 {
@@ -26,9 +29,9 @@ class Message
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $status = null;
-    
-    #[ORM\Column(type: 'datetime')]
-    private DateTime $createdAt;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    private DateTimeImmutable $createdAt;
 
     public function getId(): ?int
     {
@@ -71,15 +74,15 @@ class Message
         return $this;
     }
 
-    public function getCreatedAt(): DateTime
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(DateTime $createdAt): static
+    public function setCreatedAt(DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-        
+
         return $this;
     }
 }

@@ -5,53 +5,59 @@ namespace App\Controller;
 
 use App\Message\SendMessage;
 use App\Repository\MessageRepository;
-use Controller\MessageControllerTest;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
+ * Controller for handling message-related operations.
+ *
  * @see MessageControllerTest
- * TODO: review both methods and also the `openapi.yaml` specification
- *       Add Comments for your Code-Review, so that the developer can understand why changes are needed.
  */
 class MessageController extends AbstractController
 {
     /**
-     * TODO: cover this method with tests, and refactor the code (including other files that need to be refactored)
+     * Retrieves a list of messages based on request filters.
+     * 
+     * @param Request $request
+     * @param MessageRepository $messageRepository
+     * @return JsonResponse
      */
-    #[Route('/messages')]
-    public function list(Request $request, MessageRepository $messages): Response
+    #[Route('/messages', methods: ['GET'])]
+    public function list(Request $request, MessageRepository $messageRepository): JsonResponse
     {
-        $messages = $messages->by($request);
+        $messages = $messageRepository->findByRequestFilters($request);
   
-        foreach ($messages as $key=>$message) {
-            $messages[$key] = [
-                'uuid' => $message->getUuid(),
-                'text' => $message->getText(),
-                'status' => $message->getStatus(),
-            ];
-        }
+        $formattedMessages = array_map(fn($message) => [
+            'uuid' => $message->getUuid(),
+            'text' => $message->getText(),
+            'status' => $message->getStatus(),
+        ], $messages);
         
-        return new Response(json_encode([
-            'messages' => $messages,
-        ], JSON_THROW_ON_ERROR), headers: ['Content-Type' => 'application/json']);
+        return $this->json(['messages' => $formattedMessages]);
     }
 
-    #[Route('/messages/send', methods: ['GET'])]
-    public function send(Request $request, MessageBusInterface $bus): Response
+    /**
+     * Sends a message by dispatching it to the message bus.
+     * 
+     * @param Request $request
+     * @param MessageBusInterface $bus
+     * @return JsonResponse
+     */
+    #[Route('/messages/send', methods: ['POST'])]
+    public function send(Request $request, MessageBusInterface $bus): JsonResponse
     {
-        $text = $request->query->get('text');
+        $text = $request->request->get('text');
         
         if (!$text) {
-            return new Response('Text is required', 400);
+            return new JsonResponse(['error' => 'Text is required'], 400);
         }
 
         $bus->dispatch(new SendMessage($text));
         
-        return new Response('Successfully sent', 204);
+        return new JsonResponse(['message' => 'Successfully sent'], 200);
     }
 }
